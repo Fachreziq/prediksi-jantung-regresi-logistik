@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CardioRisk, prediksi risiko penyakit jantung</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #12263A;
+      --paper: #F4F7FA;
+      --white: #FFFFFF;
+      --edge: #D8E0E8;
+      --muted: #5C6C7C;
+      --teal: #0E7C86;
+      /* panel instrumen */
+      --panel: #0F2438;
+      --panel-2: #17314A;
+      --panel-text: #EAF1F7;
+      --panel-muted: #9FB3C6;
+      --track: #28435D;
+      --risk: #FF8470;
+      --safe: #5FD4A0;
+      --danger: #B3261E;
+      --danger-soft: #FCE8E6;
+      --warn-soft: #FFF6DD;
+      --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+      --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: var(--body); color: var(--ink); background: var(--paper); min-height: 100vh; margin: 0; }
+    h1, h2 { font-family: var(--display); }
+
+    /* ---------- Bilah atas ---------- */
+    .topbar { background: var(--white); border-bottom: 1px solid var(--edge); }
+    .topbar .isi { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem 0; }
+    .merek { display: flex; align-items: center; gap: .6rem; font-family: var(--display); font-weight: 800; font-size: 1.25rem; letter-spacing: -.01em; }
+    .merek svg { width: 30px; height: 30px; }
+    .tanda { font-size: .85rem; color: var(--muted); border: 1px solid var(--edge); border-radius: 999px; padding: .25rem .8rem; background: var(--paper); }
+
+    /* ---------- Judul ---------- */
+    .judul { font-weight: 800; font-size: clamp(1.9rem, 3.6vw, 2.8rem); line-height: 1.05; letter-spacing: -.02em; max-width: 20ch; margin: 0 0 .75rem; }
+    .sub { color: var(--muted); font-size: 1.05rem; max-width: 56ch; margin: 0; }
+
+    /* ---------- Formulir ---------- */
+    .area-form { background: var(--white); border: 1px solid var(--edge); border-radius: 14px; padding: 1.6rem 1.6rem 1.8rem; }
+    .isi-cepat { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding-bottom: 1rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--edge); font-size: .9rem; color: var(--muted); }
+    .chip { border: 1.5px solid var(--edge); background: var(--white); border-radius: 999px; padding: .3rem .9rem; font-size: .88rem; font-weight: 500; color: var(--ink); }
+    .chip:hover { border-color: var(--teal); color: var(--teal); }
+
+    .bagian { margin-bottom: 1.5rem; }
+    .bagian h2 { font-size: 1.1rem; font-weight: 600; margin: 0 0 .15rem; }
+    .bagian .ket { color: var(--muted); font-size: .88rem; margin: 0 0 .9rem; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem 1rem; }
+    @media (max-width: 575px) { .grid { grid-template-columns: 1fr; } }
+
+    label { display: block; font-weight: 600; font-size: .93rem; margin-bottom: .3rem; }
+    .kolom { position: relative; }
+    .kolom input, .kolom select {
+      width: 100%; font: inherit; font-size: 1rem; color: var(--ink);
+      border: 1.5px solid var(--edge); border-radius: 10px; padding: .62rem .8rem; background: var(--white);
+    }
+    .kolom input { padding-right: 4.2rem; }
+    .kolom .satuan { position: absolute; right: .8rem; bottom: .72rem; font-size: .82rem; color: var(--muted); pointer-events: none; }
+    .kolom input:focus, .kolom select:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14,124,134,.18); }
+
+    .pesan { border-radius: 10px; padding: .8rem 1rem; font-size: .92rem; margin-top: .4rem; }
+    .pesan ul { margin: .3rem 0 0; padding-left: 1.2rem; }
+    .pesan-error { background: var(--danger-soft); color: var(--danger); border: 1px solid #F3C2BE; }
+    .tombol { margin-top: 1rem; width: 100%; border: 0; border-radius: 12px; padding: .95rem 1.2rem; font-weight: 600; font-size: 1.05rem; background: var(--teal); color: #fff; }
+    .tombol:hover { background: #0B666E; }
+    .tombol:focus-visible, .chip:focus-visible, .btn-cetak:focus-visible, summary:focus-visible { outline: 3px solid #5BC6CF; outline-offset: 3px; }
+
+    /* ---------- Panel instrumen ---------- */
+    .instrumen { background: var(--panel); color: var(--panel-text); border-radius: 14px; padding: 1.6rem 1.5rem 1.4rem; position: sticky; top: 1rem; }
+    .instrumen h2 { font-size: 1.1rem; font-weight: 600; margin: 0 0 .6rem; color: var(--panel-text); }
+    .gauge { width: 100%; max-width: 340px; margin: 0 auto; display: block; }
+    .gauge .jalur { fill: none; stroke: var(--track); stroke-width: 14; stroke-linecap: round; }
+    .gauge .nilai { fill: none; stroke-width: 14; stroke-linecap: round; }
+    .gauge .tick { stroke: var(--panel-text); stroke-width: 2; }
+    .gauge text { font-family: var(--body); fill: var(--panel-muted); font-size: 10.5px; }
+    .gauge .angka { font-family: var(--display); font-weight: 800; font-size: 40px; fill: var(--panel-text); }
+    .risiko .nilai { stroke: var(--risk); }
+    .aman .nilai { stroke: var(--safe); }
+    @media (prefers-reduced-motion: no-preference) {
+      .gauge .nilai { animation: sapu .9s cubic-bezier(.2,.8,.2,1); }
+    }
+    @keyframes sapu { from { stroke-dasharray: 0 100; } }
+
+    .status { display: flex; justify-content: center; margin: .2rem 0 .9rem; }
+    .lencana { display: inline-flex; align-items: center; gap: .5rem; font-family: var(--display); font-weight: 800; font-size: 1.45rem; letter-spacing: -.01em; }
+    .lencana i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+    .risiko .lencana { color: var(--risk); } .risiko .lencana i { background: var(--risk); }
+    .aman .lencana { color: var(--safe); } .aman .lencana i { background: var(--safe); }
+    .kosong-teks { text-align: center; color: var(--panel-muted); font-size: .95rem; margin: .2rem 0 1rem; }
+
+    .penjelasan { background: var(--panel-2); border-radius: 10px; padding: .8rem .95rem; font-size: .92rem; color: var(--panel-text); margin-bottom: .9rem; }
+    .dua { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: .9rem; }
+    .dua div { background: var(--panel-2); border-radius: 10px; padding: .6rem .8rem; }
+    .dua span { display: block; font-size: .78rem; color: var(--panel-muted); }
+    .dua b { font-family: var(--display); font-size: 1.25rem; }
+
+    .peringatan { background: var(--warn-soft); color: #7A5300; border-radius: 10px; padding: .7rem .9rem; font-size: .88rem; margin-bottom: .6rem; }
+
+    details { border-top: 1px solid var(--track); padding: .7rem 0 .2rem; }
+    summary { cursor: pointer; font-weight: 600; font-size: .93rem; }
+    .ringkas { list-style: none; padding: 0; margin: .6rem 0 0; font-size: .86rem; }
+    .ringkas li { display: flex; justify-content: space-between; gap: .8rem; padding: .3rem 0; border-bottom: 1px solid var(--track); }
+    .ringkas li span:first-child { color: var(--panel-muted); }
+    .ringkas li span:last-child { text-align: right; }
+
+    .performa { border-top: 1px solid var(--track); margin-top: .8rem; padding-top: .8rem; }
+    .performa p { font-size: .84rem; color: var(--panel-muted); margin: 0 0 .5rem; }
+    .metrik { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+    .metrik div { text-align: center; background: var(--panel-2); border-radius: 10px; padding: .5rem .2rem; }
+    .metrik b { display: block; font-family: var(--display); font-size: 1.1rem; }
+    .metrik span { font-size: .74rem; color: var(--panel-muted); }
+
+    .btn-cetak { margin-top: .9rem; width: 100%; background: transparent; color: var(--panel-text); border: 1.5px solid var(--track); border-radius: 10px; padding: .55rem; font-size: .92rem; font-weight: 500; }
+    .btn-cetak:hover { border-color: var(--panel-muted); }
+    .catatan { margin-top: .9rem; font-size: .8rem; color: var(--panel-muted); }
+    .catatan b { color: var(--panel-text); }
+
+    footer { color: var(--muted); font-size: .85rem; }
+
+    @media print {
+      .topbar, .area-form, .btn-cetak, .chip { display: none !important; }
+      .instrumen { position: static; box-shadow: none; }
+      body { background: #fff; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="container isi">
+      <div class="merek">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 28C6 20 3 14.5 3 10.5 3 7 5.7 4.5 9 4.5c2.6 0 5 1.5 7 4.2 2-2.7 4.4-4.2 7-4.2 3.3 0 6 2.5 6 6 0 4-3 9.5-13 17.5z" fill="#0E7C86"/>
+          <path d="M5 15h7l2-4 3 8 2-4h8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        CardioRisk
+      </div>
+      <span class="tanda">Prototipe tugas kuliah</span>
+    </div>
+  </header>
+
+  <main class="container py-4 py-lg-5">
+    <div class="mb-4 mb-lg-5">
+      <h1 class="judul">Prediksi risiko penyakit jantung dari data klinis</h1>
+      <p class="sub">Isi data pasien. Model Regresi Logistik menghitung kemungkinan penyakit jantung dan menampilkan kategori risikonya.</p>
+    </div>
+
+    <div class="row g-4 align-items-start">
+
+      <!-- ================= Formulir ================= -->
+      <section class="col-lg-7">
+        <div class="area-form">
+          <div class="isi-cepat">
+            <span>Isi cepat dengan contoh dari dataset:</span>
+            <button type="button" class="chip" data-contoh="a">Contoh 1</button>
+            <button type="button" class="chip" data-contoh="b">Contoh 2</button>
+          </div>
+
+          <form method="POST" novalidate>
+
+            <div class="bagian">
+              <h2>Data pasien</h2>
+              <div class="grid">
+                <div class="kolom">
+                  <label for="Age">Usia</label>
+                  <input id="Age" name="Age" type="text" inputmode="decimal" value="{{ f.get('Age','') }}" required>
+                  <span class="satuan">tahun</span>
+                </div>
+                <div class="kolom">
+                  <label for="Sex">Jenis kelamin</label>
+                  <select id="Sex" name="Sex" required>
+                    <option value="">Pilih...</option>
+                    <option value="M" {{ 'selected' if f.get('Sex')=='M' }}>Laki-laki</option>
+                    <option value="F" {{ 'selected' if f.get('Sex')=='F' }}>Perempuan</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="bagian">
+              <h2>Pengukuran</h2>
+              <p class="ket">Isi dengan nilai hasil pemeriksaan. Nilai 0 tidak diterima.</p>
+              <div class="grid">
+                <div class="kolom">
+                  <label for="RestingBP">Tekanan darah istirahat</label>
+                  <input id="RestingBP" name="RestingBP" type="text" inputmode="decimal" value="{{ f.get('RestingBP','') }}" required>
+                  <span class="satuan">mm Hg</span>
+                </div>
+                <div class="kolom">
+                  <label for="Cholesterol">Kolesterol serum</label>
+                  <input id="Cholesterol" name="Cholesterol" type="text" inputmode="decimal" value="{{ f.get('Cholesterol','') }}" required>
+                  <span class="satuan">mg/dl</span>
+                </div>
+                <div class="kolom">
+                  <label for="MaxHR">Detak jantung maksimum</label>
+                  <input id="MaxHR" name="MaxHR" type="text" inputmode="decimal" value="{{ f.get('MaxHR','') }}" required>
+                  <span class="satuan">per menit</span>
+                </div>
+                <div class="kolom">
+                  <label for="FastingBS">Gula darah puasa di atas 120 mg/dl</label>
+                  <select id="FastingBS" name="FastingBS" required>
+                    <option value="">Pilih...</option>
+                    <option value="0" {{ 'selected' if f.get('FastingBS')=='0' }}>Tidak (120 atau kurang)</option>
+                    <option value="1" {{ 'selected' if f.get('FastingBS')=='1' }}>Ya (di atas 120)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="bagian">
+              <h2>Gejala dan hasil pemeriksaan</h2>
+              <div class="grid">
+                <div class="kolom">
+                  <label for="ChestPainType">Tipe nyeri dada</label>
+                  <select id="ChestPainType" name="ChestPainType" required>
+                    <option value="">Pilih...</option>
+                    <option value="TA" {{ 'selected' if f.get('ChestPainType')=='TA' }}>TA, angina tipikal</option>
+                    <option value="ATA" {{ 'selected' if f.get('ChestPainType')=='ATA' }}>ATA, angina atipikal</option>
+                    <option value="NAP" {{ 'selected' if f.get('ChestPainType')=='NAP' }}>NAP, nyeri non-angina</option>
+                    <option value="ASY" {{ 'selected' if f.get('ChestPainType')=='ASY' }}>ASY, tanpa gejala</option>
+                  </select>
+                </div>
+                <div class="kolom">
+                  <label for="RestingECG">EKG istirahat</label>
+                  <select id="RestingECG" name="RestingECG" required>
+                    <option value="">Pilih...</option>
+                    <option value="Normal" {{ 'selected' if f.get('RestingECG')=='Normal' }}>Normal</option>
+                    <option value="ST" {{ 'selected' if f.get('RestingECG')=='ST' }}>ST, kelainan gelombang ST-T</option>
+                    <option value="LVH" {{ 'selected' if f.get('RestingECG')=='LVH' }}>LVH, pembesaran bilik kiri</option>
+                  </select>
+                </div>
+                <div class="kolom">
+                  <label for="ExerciseAngina">Nyeri dada saat olahraga</label>
+                  <select id="ExerciseAngina" name="ExerciseAngina" required>
+                    <option value="">Pilih...</option>
+                    <option value="N" {{ 'selected' if f.get('ExerciseAngina')=='N' }}>Tidak</option>
+                    <option value="Y" {{ 'selected' if f.get('ExerciseAngina')=='Y' }}>Ya</option>
+                  </select>
+                </div>
+                <div class="kolom">
+                  <label for="Oldpeak">Oldpeak (depresi ST)</label>
+                  <input id="Oldpeak" name="Oldpeak" type="text" inputmode="decimal" value="{{ f.get('Oldpeak','') }}" required>
+                </div>
+                <div class="kolom">
+                  <label for="ST_Slope">Kemiringan segmen ST</label>
+                  <select id="ST_Slope" name="ST_Slope" required>
+                    <option value="">Pilih...</option>
+                    <option value="Up" {{ 'selected' if f.get('ST_Slope')=='Up' }}>Naik</option>
+                    <option value="Flat" {{ 'selected' if f.get('ST_Slope')=='Flat' }}>Datar</option>
+                    <option value="Down" {{ 'selected' if f.get('ST_Slope')=='Down' }}>Menurun</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {% if error %}
+            <div class="pesan pesan-error" role="alert" id="galat">
+              Periksa kembali isian berikut:
+              <ul>{% for e in error %}<li>{{ e }}</li>{% endfor %}</ul>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="tombol">Hitung risiko</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ================= Panel instrumen ================= -->
+      <aside class="col-lg-5" id="hasil">
+        <div class="instrumen {{ ('risiko' if hasil.berisiko else 'aman') if hasil else '' }}">
+          <h2>Hasil prediksi</h2>
+
+          <svg class="gauge" viewBox="0 -16 240 160" role="img"
+               aria-label="{% if hasil %}Probabilitas sakit jantung {{ hasil.persen }} persen, ambang batas 50 persen{% else %}Alat ukur probabilitas, belum ada hasil{% endif %}">
+            <path class="jalur" d="M 20 120 A 100 100 0 0 1 220 120" pathLength="100"/>
+            {% if hasil %}
+            <path class="nilai" d="M 20 120 A 100 100 0 0 1 220 120" pathLength="100"
+                  stroke-dasharray="{{ hasil.lebar }} 100"/>
+            {% endif %}
+            <line class="tick" x1="120" y1="8" x2="120" y2="32"/>
+            <text x="120" y="-3" text-anchor="middle">ambang 50%</text>
+            <text x="20" y="140" text-anchor="middle">0%</text>
+            <text x="220" y="140" text-anchor="middle">100%</text>
+            <text class="angka" x="120" y="108" text-anchor="middle">{{ (hasil.persen ~ '%') if hasil else '--' }}</text>
+            <text x="120" y="126" text-anchor="middle">probabilitas sakit jantung</text>
+          </svg>
+
+          {% if hasil %}
+          <div class="status" aria-live="polite"><span class="lencana"><i></i>{{ hasil.label }}</span></div>
+
+          <div class="dua">
+            <div><span>Sakit jantung</span><b>{{ hasil.persen }}%</b></div>
+            <div><span>Normal</span><b>{{ hasil.persen_normal }}%</b></div>
+          </div>
+
+          <div class="penjelasan">
+            {% if hasil.berisiko %}
+            Model memperkirakan kemungkinan penyakit jantung pada pasien ini tinggi. Pemeriksaan lanjutan oleh tenaga medis diperlukan.
+            {% else %}
+            Model memperkirakan kemungkinan penyakit jantung pada pasien ini rendah. Hasil ini tidak menyingkirkan penyakit, tetap periksakan diri bila ada keluhan.
+            {% endif %}
+          </div>
+
+          {% for p in peringatan %}<div class="peringatan" role="status">{{ p }}</div>{% endfor %}
+
+          <details>
+            <summary>Data yang dimasukkan</summary>
+            <ul class="ringkas">
+              {% for nama, isi in hasil.ringkasan %}<li><span>{{ nama }}</span><span>{{ isi }}</span></li>{% endfor %}
+            </ul>
+          </details>
+          {% else %}
+          <p class="kosong-teks">Isi data pasien lalu klik <b>Hitung risiko</b>.</p>
+          {% endif %}
+
+          <div class="performa">
+            <p>Performa model pada {{ jumlah_uji }} data uji</p>
+            <div class="metrik">
+              {% for nama, nilai in metrik %}<div><b>{{ nilai }}</b><span>{{ nama }}</span></div>{% endfor %}
+            </div>
+          </div>
+
+          {% if hasil %}<button type="button" class="btn-cetak" onclick="window.print()">Cetak hasil</button>{% endif %}
+
+          <p class="catatan"><b>Bukan alat diagnosis.</b> Aplikasi ini prototipe untuk tugas kuliah dan tidak menggantikan pemeriksaan dokter.</p>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="mt-4 mt-lg-5">
+      Model Regresi Logistik dengan ambang batas 0,5. Dataset: Heart Failure Prediction (Kaggle, fedesoriano), 918 data pasien.
+    </footer>
+  </main>
+
+  <script>
+    // Contoh data diambil dari baris pertama dan kedua dataset
+    const CONTOH = {
+      a: { Age: "40", Sex: "M", RestingBP: "140", Cholesterol: "289", FastingBS: "0", MaxHR: "172",
+           ChestPainType: "ATA", RestingECG: "Normal", ExerciseAngina: "N", Oldpeak: "0", ST_Slope: "Up" },
+      b: { Age: "49", Sex: "F", RestingBP: "160", Cholesterol: "180", FastingBS: "0", MaxHR: "156",
+           ChestPainType: "NAP", RestingECG: "Normal", ExerciseAngina: "N", Oldpeak: "1", ST_Slope: "Flat" }
+    };
+    document.querySelectorAll("[data-contoh]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const d = CONTOH[btn.dataset.contoh];
+        for (const k in d) document.getElementById(k).value = d[k];
+      });
+    });
+
+    // Di layar kecil, gulir ke hasil setelah prediksi
+    if (document.querySelector(".instrumen.risiko, .instrumen.aman") && window.innerWidth < 992) {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.getElementById("hasil").scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+    }
+  </script>
+</body>
+</html>
